@@ -1,112 +1,35 @@
-name: XoFFe M3U Generator
+name: X
 
 on:
   schedule:
-    - cron: '0 * * * *'  # প্রতি ঘণ্টায়
+    - cron: '0 * * * *'
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  generate:
+  r:
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.11'
         
-    - name: Install dependencies
-      run: |
-        pip install playwright
-        playwright install chromium
+    - run: pip install playwright && playwright install chromium
         
-    - name: Extract XoFFe.zip
+    - name: X
       env:
-        ZOFFE_PASS: ${{ secrets.ZOFFE_PASS }}
+        Z: ${{ secrets.ZOFFE_PASS }}
       run: |
-        python3 -c "
-        import zipfile
-        import os
-        pwd = os.environ['ZOFFE_PASS'].encode()
-        with zipfile.ZipFile('XoFFe.zip', 'r') as z:
-            z.extractall(pwd=pwd)
-        print('✅ XoFFe.zip extracted')
-        "
+        python3 -c "import zipfile,os;zipfile.ZipFile('XoFFe.zip','r').extractall(pwd=os.environ['Z'].encode())"
+        python3 xoffee.py
         
-    - name: Generate M3U files
-      run: |
-        python3 << 'EOF'
-        import json
-        import os
-        
-        # Load xoffee.json
-        with open('xoffee.json', 'r', encoding='utf-8') as f:
-            data = json.load(f)
-        
-        channels = data.get('channels', [])
-        
-        # Generate XoFFE_NS.m3u (JSON Pattern)
-        with open('XoFFE_NS.m3u', 'w', encoding='utf-8') as ns:
-            ns.write('#EXTM3U\n')
-            for ch in channels:
-                cat = ch.get('category', 'Uncategorized')
-                name = ch.get('name', 'Unknown')
-                link = ch.get('link', '')
-                logo = ch.get('logo', '')
-                cookie = ch.get('cookie', '')
-                ua = ch.get('user_agent', 'okhttp/4.11.0')
-                
-                entry = {
-                    "category": cat,
-                    "name": name,
-                    "link": link,
-                    "logo": logo,
-                    "cookie": cookie,
-                    "user_agent": ua
-                }
-                
-                ns.write(f'#EXTINF:-1 group-title="{cat}" tvg-logo="{logo}",{name}\n')
-                ns.write(f'#KODIPROP:inputstream.adaptive.stream_headers=Cookie: {cookie}\n')
-                ns.write(f'#KODIPROP:inputstream.adaptive.user_agent={ua}\n')
-                ns.write(json.dumps(entry, ensure_ascii=False) + '\n')
-                ns.write('\n')
-        
-        # Generate XoFEE_OT.m3u (Real M3U)
-        with open('XoFEE_OT.m3u', 'w', encoding='utf-8') as ot:
-            ot.write('#EXTM3U\n')
-            for ch in channels:
-                cat = ch.get('category', 'Uncategorized')
-                name = ch.get('name', 'Unknown')
-                link = ch.get('link', '')
-                logo = ch.get('logo', '')
-                cookie = ch.get('cookie', '')
-                ua = ch.get('user_agent', 'okhttp/4.11.0')
-                
-                ot.write(f'#EXTINF:-1 group-title="{cat}" tvg-logo="{logo}",{name}\n')
-                ot.write(f'#KODIPROP:inputstream.adaptive.stream_headers=Cookie: {cookie}\n')
-                ot.write(f'#KODIPROP:inputstream.adaptive.user_agent={ua}\n')
-                ot.write(f'{link}|Cookie={cookie}&User-Agent={ua}\n')
-                ot.write('\n')
-        
-        print(f'✅ Generated {len(channels)} channels')
-        EOF
-        
-    - name: Commit and Push
-      run: |
-        git config user.name "XoFFe Bot"
-        git config user.email "xoffe@github.com"
-        git add XoFFE_NS.m3u XoFEE_OT.m3u
-        if git diff --staged --quiet; then
-          echo "No changes"
-        else
-          git commit -m "🔄 Update M3U - $(date '+%Y-%m-%d %H:%M UTC')"
-          git push
-        fi
+    - run: |
+        git config user.name "X" && git config user.email "x@x.com"
+        git add XoFFE_NS.m3u XoFEE_OT.m3u 2>/dev/null || true
+        git diff --staged --quiet || (git commit -m "X $(date +%s)" && git push)
